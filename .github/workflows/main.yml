@@ -1,10 +1,23 @@
 name: Continuous Integration
 on: [push, pull_request]
 jobs:
-  build-backend:
+  clone-repo:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/upload-artifact@v3
+      with:
+        name: code
+        path: .
+
+  build-backend:
+    runs-on: ubuntu-22.04
+    needs: clone-repo
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
     - uses: actions/setup-go@v4
       with:
         go-version: '1.21'
@@ -19,29 +32,35 @@ jobs:
 
   build-frontend:
     runs-on: ubuntu-22.04
+    needs: clone-repo
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
     - uses: actions/setup-go@v4
       with:
         go-version: '1.21'
         check-latest: true
         cache-dependency-path: frontend/go.sum
     - name: Build Frontend
-      run: cd frontend && go build && go test -c
+      run: cd frontend && go build
     - uses: actions/upload-artifact@v3
       with:
         name: frontend-artifact
-        path: |
-          frontend/frontend
-          frontend/frontend.test
+        path: frontend/frontend
 
   test-frontend:
     runs-on: ubuntu-22.04
-    needs: build-frontend
+    needs: [clone-repo, build-frontend]
     steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
     - uses: actions/download-artifact@v3
       with:
         name: frontend-artifact
         path: frontend
     - name: Test Frontend
-      run: chmod +x frontend/frontend.test && ./frontend/frontend.test
+      run: cd frontend && go test
