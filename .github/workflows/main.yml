@@ -17,7 +17,6 @@ jobs:
         name: backend-artifact
         path: backend/backend
 
-
   build-frontend:
     runs-on: ubuntu-22.04
     steps:
@@ -28,8 +27,21 @@ jobs:
         check-latest: true
         cache-dependency-path: frontend/go.sum
     - name: Build Frontend
-      run: cd frontend && go build
+      run: cd frontend && go build && go test -c
     - uses: actions/upload-artifact@v3
       with:
         name: frontend-artifact
-        path: frontend/frontend
+        path: |
+          frontend/frontend
+          frontend/frontend.test
+
+  test-frontend:
+    runs-on: ubuntu-22.04
+    needs: build-frontend
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: frontend-artifact
+        path: frontend
+    - name: Test Frontend
+      run: chmod +x frontend/frontend.test && ./frontend/frontend.test
