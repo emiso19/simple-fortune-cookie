@@ -1,0 +1,33 @@
+name: Continuous Integration
+on: [push, pull_request]
+jobs:
+  build-backend:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        check-latest: true
+        cache-dependency-path: subdir/go.sum
+    - name: Build Backend
+      run: cd backend && go build
+    - uses: actions/upload-artifact@v3
+      with:
+        path: backend/backend
+
+
+  build-frontend:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        check-latest: true
+        cache-dependency-path: subdir/go.sum
+    - name: Build Frontend
+      run: cd frontend && go build
+    - uses: actions/upload-artifact@v3
+      with:
+        path: frontend/frontend
