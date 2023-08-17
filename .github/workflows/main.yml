@@ -14,6 +14,7 @@ jobs:
       run: cd backend && go build
     - uses: actions/upload-artifact@v3
       with:
+        name: backend-artifact
         path: backend/backend
 
 
@@ -30,4 +31,5 @@ jobs:
       run: cd frontend && go build
     - uses: actions/upload-artifact@v3
       with:
+        name: frontend-artifact
         path: frontend/frontend
