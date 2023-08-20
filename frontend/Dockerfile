@@ -12,7 +12,7 @@ RUN go mod download
 
 COPY ./ ./
 
-RUN go build -o frontend
+RUN CGO_ENABLED=0 go build -o frontend
 
 #######################
 ####  Application  ####
@@ -26,4 +26,6 @@ RUN apk --no-cache add ca-certificates
 
 COPY --from=builder /frontend/frontend .
 
-CMD ["./frontend"]
+EXPOSE 8080
+
+CMD ["/root/frontend"]
