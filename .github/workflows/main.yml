@@ -18,17 +18,12 @@ jobs:
       with:
         name: code
         path: .
-    - uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-        check-latest: true
-        cache-dependency-path: backend/go.sum
-    - name: Build Backend
-      run: cd backend && go build
-    - uses: actions/upload-artifact@v3
-      with:
-        name: backend-artifact
-        path: backend/backend
+    - name: Build image from Dockerfile
+      run: docker build -f backend/Dockerfile -t ghcr.io/${{ github.repository }}/backend:${{ github.sha }} backend/
+    - name: Push image to GitHub Container Registry
+      run: |
+        echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
 
   build-frontend:
     runs-on: ubuntu-22.04
@@ -38,17 +33,12 @@ jobs:
       with:
         name: code
         path: .
-    - uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-        check-latest: true
-        cache-dependency-path: frontend/go.sum
-    - name: Build Frontend
-      run: cd frontend && go build
-    - uses: actions/upload-artifact@v3
-      with:
-        name: frontend-artifact
-        path: frontend/frontend
+    - name: Build image from Dockerfile
+      run: docker build -f frontend/Dockerfile -t ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} frontend/
+    - name: Push image to GitHub Container Registry
+      run: |
+        echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
 
   test-frontend:
     runs-on: ubuntu-22.04
@@ -58,9 +48,5 @@ jobs:
       with:
         name: code
         path: .
-    - uses: actions/download-artifact@v3
-      with:
-        name: frontend-artifact
-        path: frontend
     - name: Test Frontend
       run: cd frontend && go test
