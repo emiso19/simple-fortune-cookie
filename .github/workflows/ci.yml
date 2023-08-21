@@ -1,5 +1,5 @@
-name: Continuous Integration
-on: [push, pull_request]
+name: Test
+on: [pull_request]
 jobs:
   clone-repo:
     runs-on: ubuntu-22.04
@@ -20,10 +20,13 @@ jobs:
         path: .
     - name: Build image from Dockerfile
       run: docker build -f backend/Dockerfile -t ghcr.io/${{ github.repository }}/backend:${{ github.sha }} backend/
+    - name: Tag image as latest
+      run: docker tag ghcr.io/${{ github.repository }}/backend:${{ github.sha }} ghcr.io/${{ github.repository }}/backend:latest
     - name: Push image to GitHub Container Registry
       run: |
         echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
         docker push ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+        docker push ghcr.io/${{ github.repository }}/backend:latest
 
   build-frontend:
     runs-on: ubuntu-22.04
@@ -35,10 +38,13 @@ jobs:
         path: .
     - name: Build image from Dockerfile
       run: docker build -f frontend/Dockerfile -t ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} frontend/
+    - name: Tag image as latest
+      run: docker tag ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} ghcr.io/${{ github.repository }}/frontend:latest
     - name: Push image to GitHub Container Registry
       run: |
         echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
         docker push ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+        docker push ghcr.io/${{ github.repository }}/frontend:latest
 
   test-frontend:
     runs-on: ubuntu-22.04

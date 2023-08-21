@@ -1,0 +1,72 @@
+name: Deploy
+on:
+  push:
+    branches:
+    - main
+jobs:
+  clone-repo:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/upload-artifact@v3
+      with:
+        name: code
+        path: .
+
+  build-backend:
+    runs-on: ubuntu-22.04
+    needs: clone-repo
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
+    - name: Build image from Dockerfile
+      run: docker build -f backend/Dockerfile -t ghcr.io/${{ github.repository }}/backend:${{ github.sha }} backend/
+    - name: Tag image as latest
+      run: docker tag ghcr.io/${{ github.repository }}/backend:${{ github.sha }} ghcr.io/${{ github.repository }}/backend:latest
+    - name: Push image to GitHub Container Registry
+      run: |
+        echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+        docker push ghcr.io/${{ github.repository }}/backend:latest
+
+  build-frontend:
+    runs-on: ubuntu-22.04
+    needs: clone-repo
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
+    - name: Build image from Dockerfile
+      run: docker build -f frontend/Dockerfile -t ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} frontend/
+    - name: Tag image as latest
+      run: docker tag ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} ghcr.io/${{ github.repository }}/frontend:latest
+    - name: Push image to GitHub Container Registry
+      run: |
+        echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+        docker push ghcr.io/${{ github.repository }}/frontend:latest
+
+  test-frontend:
+    runs-on: ubuntu-22.04
+    needs: [clone-repo, build-frontend]
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
+    - name: Test Frontend
+      run: cd frontend && go test
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: [clone-repo, build-frontend, build-backend, test-frontend]
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: code
+        path: .
+    - run: echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+    - run: kubectl --kubeconfig kubeconfig apply -f kubernetes
