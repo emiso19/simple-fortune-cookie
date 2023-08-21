@@ -9,11 +9,10 @@ import (
     "log"
     "time"
     "bytes"
-    "strings"
     "math/rand"
 )
 
-var BACKEND_DNS=strings.SplitN(getEnv("BACKEND_DNS", "localhost"), ":", 2)[0]
+var BACKEND_DNS=getEnv("BACKEND_DNS", "localhost")
 var BACKEND_PORT=getEnv("BACKEND_PORT", "9000")
 
 type fortune struct {
