@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: backend
 spec:
   replicas: 1
   selector:
@@ -13,8 +13,9 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend-container
+      - name: backend
         image: ghcr.io/emiso19/simple-fortune-cookie/backend:latest
+        imagePullPolicy: "Always"
         ports:
         - containerPort: 9000
         resources:
