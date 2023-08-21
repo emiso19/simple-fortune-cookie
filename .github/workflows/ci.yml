@@ -1,5 +1,5 @@
-name: Continuous Integration
-on: [push, pull_request]
+name: Test
+on: [pull_request]
 jobs:
   clone-repo:
     runs-on: ubuntu-22.04
@@ -56,14 +56,3 @@ jobs:
         path: .
     - name: Test Frontend
       run: cd frontend && go test
-
-  deploy:
-    runs-on: ubuntu-22.04
-    needs: [clone-repo, build-frontend, build-backend, test-frontend]
-    steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: code
-        path: .
-    - run: echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
-    - run: kubectl --kubeconfig kubeconfig apply -f kubernetes
