@@ -15,6 +15,7 @@ spec:
       containers:
       - name: redis
         image: redis:7.2.0-alpine
+        args: ["redis-server", "--appendonly", "yes"]
         ports:
         - containerPort: 6379
         resources:
@@ -24,3 +25,10 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "500m"
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
