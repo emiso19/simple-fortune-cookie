@@ -12,16 +12,23 @@ spec:
       labels:
         app: backend
     spec:
+      initContainers:
+      - name: check-redis
+        image: appropriate/curl
+        command: ['sh', '-c', 'until nc -z redis 6379; do echo waiting for redis; sleep 2; done;']
       containers:
       - name: backend
         image: ghcr.io/emiso19/simple-fortune-cookie/backend:latest
         imagePullPolicy: "Always"
+        env:
+        - name: REDIS_DNS
+          value: "redis"
         ports:
         - containerPort: 9000
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "250m"
+            memory: "50Mi"
+            cpu: "100m"
           limits:
             memory: "128Mi"
             cpu: "500m"
