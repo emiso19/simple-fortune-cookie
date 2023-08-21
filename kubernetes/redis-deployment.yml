@@ -1,29 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: redis
   template:
     metadata:
       labels:
-        app: backend
+        app: redis
     spec:
       containers:
-      - name: backend
-        image: ghcr.io/emiso19/simple-fortune-cookie/backend:latest
-        imagePullPolicy: "Always"
-        env:
-        - name: REDIS_DNS
-          value: "redis"
+      - name: redis
+        image: redis:7.2.0-alpine
         ports:
-        - containerPort: 9000
+        - containerPort: 6379
         resources:
           requests:
-            memory: "50Mi"
+            memory: "32Mi"
             cpu: "100m"
           limits:
             memory: "128Mi"
